@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	bikePage := getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22,16,19,24,25,26,28,29")
+	bikePage := getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22")
 	found := false
 	
 	bikePage.Find(".uImage").Each(func(i int, s *goquery.Selection) {
