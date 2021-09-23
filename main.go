@@ -1,0 +1,29 @@
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"github.com/PuerkitoBio/goquery"
+)
+
+func main() {
+	resp, err := http.Get("https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22,16,19,24,25,26,28,29")
+	if err != nil {
+		errorHandler(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		errorHandler(err)
+	}
+	doc.Find(".uImage").Each(func(i int, s *goquery.Selection) {
+		title, _ := s.Children().Attr("href")
+		fmt.Println(title, i)
+	})
+}
+
+func errorHandler(err error) {
+	fmt.Println("there was an error: ", err)
+}
+
+// https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22,16,19,24,25,26,28,29
