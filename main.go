@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/PuerkitoBio/goquery"
-	"os"
 )
 
 func main() {
+	readDB()
 	bikePage := getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22")
 	found := false
 	
 	bikePage.Find(".uImage").Each(func(i int, s *goquery.Selection) {
 		found = true
 		link, _ := s.Children().Attr("href")
-		fmt.Println(link)
+		fmt.Println("bike found here: ", link, i)
 	})
 	if(!found) {
 		fmt.Println("no entries were found")
-		os.Exit(1)
+		return
 	}
 }
 
