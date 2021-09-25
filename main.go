@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
 func main() {
 	var parsedArray []string
 	fmt.Println("starting job at: ", time.Now())
-	bikePage := getHtmlBody(Url)
+	bikePage := getHtmlBody(os.Getenv("URL"))
 	found := false
 	bikesAvailable := []string{""}
 	
