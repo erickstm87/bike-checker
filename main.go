@@ -3,23 +3,33 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 	"github.com/PuerkitoBio/goquery"
 )
 
 func main() {
-	readDB()
-	bikePage := getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22")
+	var parsedArray []string
+	fmt.Println("starting job at: ", time.Now())
+	bikePage := getHtmlBody(Url)
 	found := false
+	bikesAvailable := []string{""}
 	
 	bikePage.Find(".uImage").Each(func(i int, s *goquery.Selection) {
 		found = true
 		link, _ := s.Children().Attr("href")
-		fmt.Println("bike found here: ", link, i)
+		bikesAvailable = append(bikesAvailable, link)
 	})
 	if(!found) {
 		fmt.Println("no entries were found")
 		return
 	}
+	// erase blank spaces from array by copying to new
+	for i := range bikesAvailable {
+		if(bikesAvailable[i] != "" && bikesAvailable[i] != " ") {
+			parsedArray = append(parsedArray, bikesAvailable[i])
+		}
+	}
+	readDB(bikesAvailable)
 }
 
 func errorHandler(err error) {
@@ -37,6 +47,3 @@ func getHtmlBody(url string) *goquery.Document {
 	} 
 	return doc
 }
-
-// https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22,16,19,24,25,26,28,29
-// https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22
