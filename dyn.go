@@ -67,10 +67,6 @@ func updateDb(entry string, anIndex string) {
 }
 
 func alertMe(entry string) {
-	fmt.Println("work in progress", entry)
-	
-
-
 	TWILIO_ACCOUNT_SID := os.Getenv("TWILIO_ACCOUNT_SID")
 	TWILIO_AUTH_TOKEN := os.Getenv("TWILIO_AUTH_TOKEN")
 	if(TWILIO_ACCOUNT_SID == "" || TWILIO_AUTH_TOKEN == "") {

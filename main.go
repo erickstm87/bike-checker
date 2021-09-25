@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
 	"github.com/PuerkitoBio/goquery"
 )
 
