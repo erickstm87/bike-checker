@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"time"
 	"os"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -11,49 +12,59 @@ import (
 	"github.com/twilio/twilio-go/rest/api/v2010"
 )
 
-func readDB(seedData []string) {
+func readDB(seedData []AvailableBike) {
     sess, _ := session.NewSession(&aws.Config{
 		Region: aws.String(os.Getenv("TIMEZONE")),
 	})
 	svc := dynamodb.New(sess)
 	for index, entry := range seedData {
-		input := &dynamodb.GetItemInput{
-			Key: map[string]*dynamodb.AttributeValue{
-				"Link": {
-					S: aws.String(entry),
+        if(entry.link != "" || entry.link != " ") {
+			input := &dynamodb.GetItemInput{
+				Key: map[string]*dynamodb.AttributeValue{
+					"Link": {
+						S: aws.String(entry.link),
+					},
 				},
-			},
-			TableName: aws.String(os.Getenv("TABLE_NAME")),
+				TableName: aws.String(os.Getenv("TABLE_NAME")),
+			}
+			result, err := svc.GetItem(input)
+			if err != nil {
+				fmt.Println("there was an error: ", err)
+			}
+			if(len(result.Item) == 0 && entry.link != "") {
+				// alert me
+				fmt.Println("new entry found: ", entry)
+				alertMe(entry)
+				updateDb(entry.link, entry.model, strconv.Itoa(index))
+			}
+			
+			fmt.Println("here is your result: ", result.Item)
 		}
-		result, err := svc.GetItem(input)
-		if err != nil {
-			fmt.Println("there was an error: ", err)
-		}
-		if(len(result.Item) == 0 && entry != "") {
-			// alert me
-			fmt.Println("new entry found: ", entry)
-			alertMe(entry)
-			updateDb(entry, strconv.Itoa(index))
-		}
-		
-		fmt.Println("here is your result: ", result.Item)
 	}
 	
 }
 
-func updateDb(entry string, anIndex string) {
+func updateDb(link string, model string, anIndex string) {
+	loc, _ := time.LoadLocation("MST")
+    now := time.Now().In(loc)
+	
 	sess, _ := session.NewSession(&aws.Config{
 		Region: aws.String(os.Getenv("TIMEZONE")),
 	})
 	svc := dynamodb.New(sess)
-
 	input := &dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"Link": {
-				S: aws.String(entry),
+				S: aws.String(link),
 			},
 			"TheIndex": {
 				S: aws.String(anIndex),
+			},
+			"TimeStamp": {
+				S: aws.String(now.String()),
+			},
+			"Model": {
+				S: aws.String(model),
 			},
 		},
 		ReturnConsumedCapacity: aws.String("TOTAL"),
@@ -66,7 +77,7 @@ func updateDb(entry string, anIndex string) {
 	}
 }
 
-func alertMe(entry string) {
+func alertMe(entry AvailableBike) {
 	TWILIO_ACCOUNT_SID := os.Getenv("TWILIO_ACCOUNT_SID")
 	TWILIO_AUTH_TOKEN := os.Getenv("TWILIO_AUTH_TOKEN")
 	if(TWILIO_ACCOUNT_SID == "" || TWILIO_AUTH_TOKEN == "") {
@@ -75,7 +86,7 @@ func alertMe(entry string) {
 	}
 	client := twilio.NewRestClient()
 	params := &openapi.CreateMessageParams{}
-	message := "New Hightower! " + entry
+	message := "New " + entry.model + " available! " + entry.link
 	params.SetTo(os.Getenv("PHONE_NUMBER"))
 	params.SetFrom(os.Getenv("TWILIO_PHONE"))
 	params.SetBody(message)
@@ -88,7 +99,9 @@ func alertMe(entry string) {
     }
 }
 	
-// func seedDB(seedData []string) {
+// func seedDB(seedData []AvailableBike) {
+// 	loc, _ := time.LoadLocation("MST")
+//     now := time.Now().In(loc)
 // 	sess, _ := session.NewSession(&aws.Config{
 // 		Region: aws.String(Timezone),
 // 	})
@@ -97,13 +110,22 @@ func alertMe(entry string) {
 // 	for index, entry := range seedData {
 // 		anIndex := strconv.Itoa(index)
 // 		fmt.Println("here is the index stringified: ", anIndex)
+// 		if(entry.link == "" || entry.link == " ") {
+// 			continue
+// 		}
 // 		input := &dynamodb.PutItemInput{
 // 			Item: map[string]*dynamodb.AttributeValue{
 // 				"Link": {
-// 					S: aws.String(entry),
+// 					S: aws.String(entry.link),
 // 				},
 // 				"TheIndex": {
 // 					S: aws.String(anIndex),
+// 				},
+// 				"TimeStamp": {
+// 					S: aws.String(now.String()),
+// 				},
+// 				"Model": {
+// 					S: aws.String(entry.model),
 // 				},
 // 			},
 // 			ReturnConsumedCapacity: aws.String("TOTAL"),
