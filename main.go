@@ -14,20 +14,30 @@ type AvailableBike struct {
 	model string
 }
 
+type BikesToLookFor struct {
+	urlBodyPage *goquery.Document
+	modelPage string
+}
+var bikesAvailable []AvailableBike
+
 func main() {
 	fmt.Println("starting job at: ", time.Now())
 	var bikesArray []AvailableBike
-	htPage := getHtmlBody(os.Getenv("URL"))
-	mvPage := getHtmlBody(os.Getenv("MAV_URL"))
-	highTowerArray := findTheBikes(htPage, "hightower")
-	maverickArray := findTheBikes(mvPage, "maverick")
-	bikesArray = append(highTowerArray, maverickArray...)
+	
+	bikesToSearch := []BikesToLookFor {
+		{ urlBodyPage: getHtmlBody(os.Getenv("URL")), modelPage: "htPage", }, 
+		{ urlBodyPage: getHtmlBody(os.Getenv("MAV_URL")), modelPage: "mvPage", },
+	}
+	
+	for _, bikePage := range bikesToSearch {
+		bikePageArray := findTheBikes(bikePage.urlBodyPage, bikePage.modelPage)
+		bikesArray = append(bikePageArray)
+	}
 
 	if(len(bikesArray) == 0) {
 		fmt.Println("no entries were found")
 		return
 	}
-	
 	readDB(bikesArray)
 	// seedDB(bikesAvailable)
 }
@@ -49,9 +59,9 @@ func getHtmlBody(url string) *goquery.Document {
 }
 
 func findTheBikes(bikeEntries *goquery.Document, modelName string) []AvailableBike {
-	var bikesAvailable []AvailableBike
 	bikeEntries.Find(".uImage").Each(func(i int, s *goquery.Selection) {
 		link, _ := s.Children().Attr("href")
+		
 		bikeFound := AvailableBike {
 			model: modelName,
 			link: link,
