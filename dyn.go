@@ -106,7 +106,7 @@ func alertMe(entry AvailableBike) {
 // 		Region: aws.String(Timezone),
 // 	})
 // 	svc := dynamodb.New(sess)
-// 	seedData = seedData[1:]
+// 	// seedData = seedData[1:]
 // 	for index, entry := range seedData {
 // 		anIndex := strconv.Itoa(index)
 // 		fmt.Println("here is the index stringified: ", anIndex)

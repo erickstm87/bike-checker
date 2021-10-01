@@ -27,6 +27,7 @@ func main() {
 	bikesToSearch := []BikesToLookFor {
 		{ urlBodyPage: getHtmlBody(os.Getenv("URL")), modelPage: "htPage", }, 
 		{ urlBodyPage: getHtmlBody(os.Getenv("MAV_URL")), modelPage: "mvPage", },
+		{ urlBodyPage: getHtmlBody(os.Getenv("TRUL")), modelPage: "stPage", },
 	}
 	
 	for _, bikePage := range bikesToSearch {
