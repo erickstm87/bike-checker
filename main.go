@@ -25,9 +25,9 @@ func main() {
 	var bikesArray []AvailableBike
 	
 	bikesToSearch := []BikesToLookFor {
-		{ urlBodyPage: getHtmlBody(os.Getenv("URL")), modelPage: "htPage", }, 
-		{ urlBodyPage: getHtmlBody(os.Getenv("MAV_URL")), modelPage: "mvPage", },
-		{ urlBodyPage: getHtmlBody(os.Getenv("TRUL")), modelPage: "stPage", },
+		{ urlBodyPage: getHtmlBody(os.Getenv("URL")), modelPage: "hightower", }, 
+		{ urlBodyPage: getHtmlBody(os.Getenv("MAV_URL")), modelPage: "maverick", },
+		{ urlBodyPage: getHtmlBody(os.Getenv("TRUL")), modelPage: "sentinel", },
 	}
 	
 	for _, bikePage := range bikesToSearch {
