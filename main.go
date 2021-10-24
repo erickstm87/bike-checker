@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -23,11 +22,11 @@ var bikesAvailable []AvailableBike
 func main() {
 	fmt.Println("starting job at: ", time.Now())
 	var bikesArray []AvailableBike
-	
 	bikesToSearch := []BikesToLookFor {
-		{ urlBodyPage: getHtmlBody(os.Getenv("URL")), modelPage: "hightower", }, 
-		{ urlBodyPage: getHtmlBody(os.Getenv("MAV_URL")), modelPage: "maverick", },
-		{ urlBodyPage: getHtmlBody(os.Getenv("TRUL")), modelPage: "sentinel", },
+		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22"), modelPage: "hightower", }, 
+		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=maverick&framesize=9,11,12,17,18,20,21,22&material=2"), modelPage: "maverick", },
+		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=sentinel&framesize=9,11,12,17,18,20,21,22"), modelPage: "sentinel", },
+		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=bronson&framesize=9,11,12,17,18,20,21,22&material=2"), modelPage: "bronson", },
 	}
 	
 	for _, bikePage := range bikesToSearch {

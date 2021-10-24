@@ -99,43 +99,43 @@ func alertMe(entry AvailableBike) {
     }
 }
 	
-// func seedDB(seedData []AvailableBike) {
-// 	loc, _ := time.LoadLocation("MST")
-//     now := time.Now().In(loc)
-// 	sess, _ := session.NewSession(&aws.Config{
-// 		Region: aws.String(Timezone),
-// 	})
-// 	svc := dynamodb.New(sess)
-// 	// seedData = seedData[1:]
-// 	for index, entry := range seedData {
-// 		anIndex := strconv.Itoa(index)
-// 		fmt.Println("here is the index stringified: ", anIndex)
-// 		if(entry.link == "" || entry.link == " ") {
-// 			continue
-// 		}
-// 		input := &dynamodb.PutItemInput{
-// 			Item: map[string]*dynamodb.AttributeValue{
-// 				"Link": {
-// 					S: aws.String(entry.link),
-// 				},
-// 				"TheIndex": {
-// 					S: aws.String(anIndex),
-// 				},
-// 				"TimeStamp": {
-// 					S: aws.String(now.String()),
-// 				},
-// 				"Model": {
-// 					S: aws.String(entry.model),
-// 				},
-// 			},
-// 			ReturnConsumedCapacity: aws.String("TOTAL"),
-// 			TableName: aws.String(TableName),
-// 		}
-// 		result, err := svc.PutItem(input)
-// 		if err != nil {
-// 			fmt.Println("I have an error", err)
-// 			os.Exit(1)
-// 		}
-// 		fmt.Println(result)
-// 	}
-// }
+func seedDB(seedData []AvailableBike) {
+	loc, _ := time.LoadLocation("MST")
+    now := time.Now().In(loc)
+	sess, _ := session.NewSession(&aws.Config{
+		Region: aws.String(Timezone),
+	})
+	svc := dynamodb.New(sess)
+	// seedData = seedData[1:]
+	for index, entry := range seedData {
+		anIndex := strconv.Itoa(index)
+		fmt.Println("here is the index stringified: ", anIndex)
+		if(entry.link == "" || entry.link == " ") {
+			continue
+		}
+		input := &dynamodb.PutItemInput{
+			Item: map[string]*dynamodb.AttributeValue{
+				"Link": {
+					S: aws.String(entry.link),
+				},
+				"TheIndex": {
+					S: aws.String(anIndex),
+				},
+				"TimeStamp": {
+					S: aws.String(now.String()),
+				},
+				"Model": {
+					S: aws.String(entry.model),
+				},
+			},
+			ReturnConsumedCapacity: aws.String("TOTAL"),
+			TableName: aws.String(TableName),
+		}
+		result, err := svc.PutItem(input)
+		if err != nil {
+			fmt.Println("I have an error", err)
+			os.Exit(1)
+		}
+		fmt.Println(result)
+	}
+}
