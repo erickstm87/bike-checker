@@ -27,6 +27,7 @@ func main() {
 		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=maverick&framesize=9,11,12,17,18,20,21,22&material=2"), modelPage: "maverick", },
 		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=sentinel&framesize=9,11,12,17,18,20,21,22"), modelPage: "sentinel", },
 		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=bronson&framesize=9,11,12,17,18,20,21,22&material=2"), modelPage: "bronson", },
+		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=roubion&framesize=9,11,12,17,18,20,21,22"), modelPage: "roubion",},
 	}
 	
 	for _, bikePage := range bikesToSearch {
