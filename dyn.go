@@ -136,7 +136,7 @@ func itemGone(link string, model string) {
 	}
 	client := twilio.NewRestClient()
 	params := &openapi.CreateMessageParams{}
-	message := model + "has been sold and deleted from the table " + link
+	message := model + " has been sold and deleted from the table " + link
 	params.SetTo(os.Getenv("PHONE_NUMBER"))
 	params.SetFrom(os.Getenv("TWILIO_PHONE"))
 	params.SetBody(message)
