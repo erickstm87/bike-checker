@@ -22,12 +22,18 @@ type Item struct {
 	TheIndex string
 }
 
-func readDB(seedData []AvailableBike) {
-	itemInterested := map[string]Item{}
-    sess, _ := session.NewSession(&aws.Config{
+func newSession() *dynamodb.DynamoDB{
+	sess, _ := session.NewSession(&aws.Config{
 		Region: aws.String(os.Getenv("TIMEZONE")),
 	})
 	svc := dynamodb.New(sess)
+	return svc
+}
+
+func readDB(seedData []AvailableBike) {
+	itemInterested := map[string]Item{}
+    
+	svc := newSession()
 	for index, entry := range seedData {
         if(entry.link != "" || entry.link != " ") {
 			input := &dynamodb.GetItemInput{
@@ -49,11 +55,11 @@ func readDB(seedData []AvailableBike) {
 			if(len(result.Item) == 0 && entry.link != "") {
 				// alert me
 				fmt.Println("new entry found: ", entry)
-				alertMe(entry)
+				alertMe(entry.link, entry.model, "new bike")
 				updateDb(entry.link, entry.model, strconv.Itoa(index))
 			} else if(item.Interested == "Yes") {
 				itemInterested[item.Link] = item
-			}
+			} 
 		}
 	}
 	checkInterested(seedData)
@@ -66,10 +72,7 @@ func checkInterested(seedData []AvailableBike) {
 		seedConvertedToMap[entry.link] = entry
 	}
 	Interested := "Yes"
-	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("TIMEZONE")),
-	})
-	svc := dynamodb.New(sess)
+	svc := newSession()
 
 	filt := expression.Name("Interested").Equal(expression.Value(Interested))
 	proj := expression.NamesList(expression.Name("Interested"), expression.Name("Link"), expression.Name("Model"), expression.Name("TimeStamp"))
@@ -122,41 +125,16 @@ func checkInterested(seedData []AvailableBike) {
 			}
 			
 			fmt.Println("Deleted " + entry.Link + " from table bike-availability")
-			itemGone(entry.Link, entry.Model)
+			alertMe(entry.Link, entry.Model, "bike sold")
 		}
 	}
-}
-
-func itemGone(link string, model string) {
-	TWILIO_ACCOUNT_SID := os.Getenv("TWILIO_ACCOUNT_SID")
-	TWILIO_AUTH_TOKEN := os.Getenv("TWILIO_AUTH_TOKEN")
-	if(TWILIO_ACCOUNT_SID == "" || TWILIO_AUTH_TOKEN == "") {
-		fmt.Println("you need either an account sid or auth token")
-		os.Exit(1)
-	}
-	client := twilio.NewRestClient()
-	params := &openapi.CreateMessageParams{}
-	message := model + " has been sold and deleted from the table " + link
-	params.SetTo(os.Getenv("PHONE_NUMBER"))
-	params.SetFrom(os.Getenv("TWILIO_PHONE"))
-	params.SetBody(message)
-
-	_, err := client.ApiV2010.CreateMessage(params)
-    if err != nil {
-        fmt.Println(err.Error())
-    } else {
-        fmt.Println("SMS sent successfully!")
-    }
 }
 
 func updateDb(link string, model string, anIndex string) {
 	loc, _ := time.LoadLocation("MST")
     now := time.Now().In(loc)
 	
-	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("TIMEZONE")),
-	})
-	svc := dynamodb.New(sess)
+	svc := newSession()
 	input := &dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"Link": {
@@ -182,7 +160,8 @@ func updateDb(link string, model string, anIndex string) {
 	}
 }
 
-func alertMe(entry AvailableBike) {
+func alertMe(link string, model string, signature string) {
+	message := ""
 	TWILIO_ACCOUNT_SID := os.Getenv("TWILIO_ACCOUNT_SID")
 	TWILIO_AUTH_TOKEN := os.Getenv("TWILIO_AUTH_TOKEN")
 	if(TWILIO_ACCOUNT_SID == "" || TWILIO_AUTH_TOKEN == "") {
@@ -191,7 +170,11 @@ func alertMe(entry AvailableBike) {
 	}
 	client := twilio.NewRestClient()
 	params := &openapi.CreateMessageParams{}
-	message := "New " + entry.model + " available! " + entry.link 
+	if(signature == "new bike") {
+		message = "New " + model + " available! " + link 
+	} else if(signature == "bike sold") {
+		message = model + " has been sold and deleted from the table " + link
+	}
 	params.SetTo(os.Getenv("PHONE_NUMBER"))
 	params.SetFrom(os.Getenv("TWILIO_PHONE"))
 	params.SetBody(message)
@@ -207,10 +190,8 @@ func alertMe(entry AvailableBike) {
 func seedDB(seedData []AvailableBike) {
 	loc, _ := time.LoadLocation("MST")
     now := time.Now().In(loc)
-	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("TIMEZONE")),
-	})
-	svc := dynamodb.New(sess)
+
+	svc := newSession()
 	// seedData = seedData[1:]
 	for index, entry := range seedData {
 		anIndex := strconv.Itoa(index)
