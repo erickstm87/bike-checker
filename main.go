@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
+	"strconv"
 	"github.com/PuerkitoBio/goquery"
 )
 
@@ -20,7 +20,22 @@ type BikesToLookFor struct {
 var bikesAvailable []AvailableBike
 
 func main() {
-	fmt.Println("starting job at: ", time.Now())
+	theTime := time.Now()
+	year := theTime.Year()
+	month := theTime.Month()
+	day := theTime.Day()
+	hour := theTime.Hour()
+	minute := theTime.Minute()
+	sMinute := ""
+	if(theTime.Minute() < 10) {
+		sMinute = "0" + strconv.Itoa(minute)
+	} else {
+		sMinute = strconv.Itoa(minute)
+	}
+    
+	theDate := strconv.Itoa(year) + "-" + month.String() + "-" + strconv.Itoa(day) + " " + strconv.Itoa(hour) + ":" + sMinute
+
+	fmt.Println("starting job at: ", theDate)
 	var bikesArray []AvailableBike
 	bikesToSearch := []BikesToLookFor {
 		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22"), modelPage: "hightower", }, 
@@ -35,7 +50,7 @@ func main() {
 		bikesArray = append(bikePageArray)
 	}
 
-	if(len(bikesArray) == 0) {
+	if(len(bikesArray) == 0 || hour == 4) {
 		fmt.Println("no entries were found")
 		return
 	}
