@@ -20,7 +20,8 @@ type BikesToLookFor struct {
 var bikesAvailable []AvailableBike
 
 func main() {
-	theTime := time.Now()
+	loc, _ := time.LoadLocation("MST")
+	theTime := time.Now().In(loc)
 	year := theTime.Year()
 	month := theTime.Month()
 	day := theTime.Day()
