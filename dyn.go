@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/twilio/twilio-go"
-	"github.com/twilio/twilio-go/rest/api/v2010"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
@@ -55,7 +53,8 @@ func readDB(seedData []AvailableBike) {
 			if(len(result.Item) == 0 && entry.link != "") {
 				// alert me
 				fmt.Println("new entry found: ", entry)
-				alertMe(entry.link, entry.model, "new bike")
+				
+				push(entry.link, entry.model, "available")
 				updateDb(entry.link, entry.model, strconv.Itoa(index))
 			} else if(item.Interested == "Yes") {
 				itemInterested[item.Link] = item
@@ -122,10 +121,11 @@ func checkInterested(seedData []AvailableBike) {
 			_, err := svc.DeleteItem(input)
 			if err != nil {
 				fmt.Println("Got error calling DeleteItem: ", err)
+				break
 			}
 			
 			fmt.Println("Deleted " + entry.Link + " from table bike-availability")
-			alertMe(entry.Link, entry.Model, "bike sold")
+			push(entry.Link, entry.Model, "sold")
 		}
 	}
 }
@@ -158,33 +158,6 @@ func updateDb(link string, model string, anIndex string) {
 	if err != nil {
 		fmt.Println("Got error calling UpdateItem: ", err)
 	}
-}
-
-func alertMe(link string, model string, signature string) {
-	message := ""
-	TWILIO_ACCOUNT_SID := os.Getenv("TWILIO_ACCOUNT_SID")
-	TWILIO_AUTH_TOKEN := os.Getenv("TWILIO_AUTH_TOKEN")
-	if(TWILIO_ACCOUNT_SID == "" || TWILIO_AUTH_TOKEN == "") {
-		fmt.Println("you need either an account sid or auth token")
-		os.Exit(1)
-	}
-	client := twilio.NewRestClient()
-	params := &openapi.CreateMessageParams{}
-	if(signature == "new bike") {
-		message = "New " + model + " available! " + link 
-	} else if(signature == "bike sold") {
-		message = model + " has been sold and deleted from the table " + link
-	}
-	params.SetTo(os.Getenv("PHONE_NUMBER"))
-	params.SetFrom(os.Getenv("TWILIO_PHONE"))
-	params.SetBody(message)
-	
-	_, err := client.ApiV2010.CreateMessage(params)
-    if err != nil {
-        fmt.Println(err.Error())
-    } else {
-        fmt.Println("SMS sent successfully!")
-    }
 }
 	
 func seedDB(seedData []AvailableBike) {
