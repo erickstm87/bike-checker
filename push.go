@@ -19,10 +19,10 @@ func push(link string, model string, status string) {
 	 message := ""
 	 theTitle := ""
 	 if status == "available" {
-		message = "New " + model + " available"
-		theTitle = "New Bike Found!"
+		message = "New " + model + " available " + link
+		theTitle = "New Bike Found! "
 	 } else if status == "sold"{
-		message = model + " has been sold and deleted from DB"
+		message = model + " has been sold and deleted from DB" + link
 		theTitle = "Bike Sold"
 	 }
 	 // Publish message
