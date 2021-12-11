@@ -66,6 +66,7 @@ func readDB(seedData []AvailableBike) {
 
 func checkInterested(seedData []AvailableBike) {
 	bikeInterested := map[string]Item{}
+	bikeNotInterested := map[string]Item{}
 	seedConvertedToMap := map[string]AvailableBike{}
 	for _, entry := range seedData {
 		seedConvertedToMap[entry.link] = entry
@@ -103,6 +104,8 @@ func checkInterested(seedData []AvailableBike) {
 		if item.Interested == "Yes" {
 			fmt.Println("you are on the right track", item.TimeStamp, item.Model, item.Link)
 			bikeInterested[item.Link] = item
+		} else {
+			bikeNotInterested[item.Link] = item
 		}
 	}
 	for _, entry := range bikeInterested {
@@ -126,6 +129,29 @@ func checkInterested(seedData []AvailableBike) {
 			
 			fmt.Println("Deleted " + entry.Link + " from table bike-availability")
 			push(entry.Link, entry.Model, "sold")
+		}
+	}
+
+	for _, entry := range bikeNotInterested {
+		_, found := seedConvertedToMap[entry.Link]
+		if !found {
+			fmt.Println("it's not here!!!!", entry)
+			input := &dynamodb.DeleteItemInput{
+				Key: map[string]*dynamodb.AttributeValue{
+					"Link": {
+						S: aws.String(entry.Link),
+					},
+				},
+				TableName: aws.String(os.Getenv("TABLE_NAME")),
+			}
+			
+			_, err := svc.DeleteItem(input)
+			if err != nil {
+				fmt.Println("Got error calling DeleteItem: ", err)
+				break
+			}
+			
+			fmt.Println("Deleted " + entry.Link + " from table bike-availability")
 		}
 	}
 }
