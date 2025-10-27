@@ -33,7 +33,7 @@ func readDB(seedData []AvailableBike) {
     
 	svc := newSession()
 	for index, entry := range seedData {
-        if(entry.link != "" || entry.link != " ") {
+        if(entry.link != "" && entry.link != " ") {
 			input := &dynamodb.GetItemInput{
 				Key: map[string]*dynamodb.AttributeValue{
 					"Link": {
