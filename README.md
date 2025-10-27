@@ -74,17 +74,5 @@ Deleted https://www.pinkbike.com/buysell/3029717/ from table bike-availability
 - Do not commit AWS credentials or Expo push tokens to source control.
 - The project contains an optional `seedDB` function — use with care.
 
-## Why this is good for Upwork
-- Shows real-world integration: scraping + cloud DB + push notifications
-- Small, single-purpose service that clients can understand quickly
-- Easy to run locally with minimal setup and environment variables
-
-## Next recommended improvements (optional; I can add these):
-- Add a `LICENSE` (added)
-- Close HTTP response bodies and improve error handling
-- Remove global mutable state (`bikesAvailable`) for deterministic runs
-- Add unit tests for the scraping/parsing logic and a CI workflow (GitHub Actions)
-- Rename `TIMEZONE` -> `AWS_REGION` and validate environment variables at startup
-
 ## License
 This project is licensed under the MIT License — see `LICENSE`.
