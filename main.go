@@ -47,7 +47,6 @@ func main() {
 		{url: "https://www.pinkbike.com/buysell/list/?region=3&q=roubion&framesize=9,11,12,17,18,20,21,22", model: "roubion"},
 	}
 
-	var bikesArray []AvailableBike
 	for _, search := range searches {
 		doc, err := getHtmlBody(search.url)
 		if err != nil {
