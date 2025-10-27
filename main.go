@@ -17,8 +17,6 @@ type BikesToLookFor struct {
 	urlBodyPage *goquery.Document
 	modelPage string
 }
-var bikesAvailable []AvailableBike
-
 func main() {
 	loc, _ := time.LoadLocation("MST")
 	theTime := time.Now().In(loc)
@@ -38,20 +36,29 @@ func main() {
 
 	fmt.Println("starting job at: ", theDate)
 	var bikesArray []AvailableBike
-	bikesToSearch := []BikesToLookFor {
-		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22"), modelPage: "hightower", }, 
-		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=maverick&framesize=9,11,12,17,18,20,21,22&material=2"), modelPage: "maverick", },
-		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=sentinel&framesize=9,11,12,17,18,20,21,22"), modelPage: "sentinel", },
-		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=bronson&framesize=9,11,12,17,18,20,21,22&material=2"), modelPage: "bronson", },
-		{ urlBodyPage: getHtmlBody("https://www.pinkbike.com/buysell/list/?region=3&q=roubion&framesize=9,11,12,17,18,20,21,22"), modelPage: "roubion",},
-	}
-	
-	for _, bikePage := range bikesToSearch {
-		bikePageArray := findTheBikes(bikePage.urlBodyPage, bikePage.modelPage)
-		bikesArray = append(bikePageArray)
+	searches := []struct {
+		url   string
+		model string
+	}{
+		{url: "https://www.pinkbike.com/buysell/list/?region=3&q=hightower&framesize=9,11,12,17,18,20,21,22", model: "hightower"},
+		{url: "https://www.pinkbike.com/buysell/list/?region=3&q=maverick&framesize=9,11,12,17,18,20,21,22&material=2", model: "maverick"},
+		{url: "https://www.pinkbike.com/buysell/list/?region=3&q=sentinel&framesize=9,11,12,17,18,20,21,22", model: "sentinel"},
+		{url: "https://www.pinkbike.com/buysell/list/?region=3&q=bronson&framesize=9,11,12,17,18,20,21,22&material=2", model: "bronson"},
+		{url: "https://www.pinkbike.com/buysell/list/?region=3&q=roubion&framesize=9,11,12,17,18,20,21,22", model: "roubion"},
 	}
 
-	if(len(bikesArray) == 0 || hour == 4) {
+	var bikesArray []AvailableBike
+	for _, search := range searches {
+		doc, err := getHtmlBody(search.url)
+		if err != nil {
+			fmt.Printf("Error fetching %s: %v\n", search.model, err)
+			continue
+		}
+		foundBikes := findTheBikes(doc, search.model)
+		bikesArray = append(bikesArray, foundBikes...)
+	}
+
+	if len(bikesArray) == 0 || hour == 4 {
 		fmt.Println("no entries were found")
 		return
 	}
@@ -63,29 +70,41 @@ func errorHandler(err error) {
 	fmt.Println("there was an error: ", err)
 }
 
-func getHtmlBody(url string) *goquery.Document {
+func getHtmlBody(url string) (*goquery.Document, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		errorHandler(err)
+		return nil, fmt.Errorf("failed to fetch URL %s: %w", url, err)
 	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("HTTP request failed with status %d for URL %s", resp.StatusCode, url)
+	}
+
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		errorHandler(err)
-	} 
-	return doc
+		return nil, fmt.Errorf("failed to parse HTML from %s: %w", url, err)
+	}
+	return doc, nil
 }
 
 func findTheBikes(bikeEntries *goquery.Document, modelName string) []AvailableBike {
+	var bikes []AvailableBike
 	bikeEntries.Find(".uImage").Each(func(i int, s *goquery.Selection) {
-		link, _ := s.Children().Attr("href")
+		link, exists := s.Children().Attr("href")
+		if !exists || link == "" {
+			return
+		}
 		
-		bikeFound := AvailableBike {
+		// Skip known bad/test entries
+		if link == "https://www.pinkbike.com/buysell/3029717/" {
+			return
+		}
+
+		bikes = append(bikes, AvailableBike{
 			model: modelName,
-			link: link,
-		}
-		if(link != "https://www.pinkbike.com/buysell/3029717/") {
-			bikesAvailable = append(bikesAvailable, bikeFound)
-		}
+			link:  link,
+		})
 	})
-	return bikesAvailable
+	return bikes
 }
